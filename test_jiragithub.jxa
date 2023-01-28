@@ -2,7 +2,7 @@
 var assert = importModule("assert");
 
 // Import the JXA script to be tested
-var script = importModule("path/to/script.js");
+var script = importModule("jiragithub.jxa"); 
 
 // Define a test function
 function test() {
