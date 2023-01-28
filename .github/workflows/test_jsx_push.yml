@@ -11,4 +11,4 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Test JXA script
-      run: osascript test.js
+      run: osascript test_jiragithub.jxa
