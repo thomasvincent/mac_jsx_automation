@@ -1,0 +1,27 @@
+// Import the 'assert' module for making assertions
+var assert = importModule("assert");
+
+// Import the JXA script to be tested
+var script = importModule("path/to/script.js");
+
+// Define a test function
+function test() {
+    // Make an API call to JIRA and GitHub using the script
+    var jira_data = script.getJiraData();
+    var github_data = script.getGithubData();
+
+    // Assert that the correct number of tickets were returned from JIRA
+    assert.equal(jira_data.issues.length, 5);
+
+    // Assert that the correct number of pull requests were returned from GitHub
+    assert.equal(github_data.length, 2);
+
+    // Assert that the first ticket returned has the correct summary
+    assert.equal(jira_data.issues[0].fields.summary, "My first ticket");
+
+    // Assert that the first pull request returned has the correct title
+    assert.equal(github_data[0].title, "Fix bug in login page");
+}
+
+// Run the test
+test();
