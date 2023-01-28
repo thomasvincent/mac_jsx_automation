@@ -1,0 +1,38 @@
+name: Dependabot Reviewer
+on: pull_request_target
+permissions:
+  pull-requests: write
+  contents: write
+jobs:
+  review-dependabot-pr:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+    steps:
+    - name: Fetch Dependabot Metadata
+      id: dependabot-metadata
+      uses: dependabot/fetch-metadata@v1.3.1
+    - name: Auto-merge Dependabot PRs
+      if: ${{steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch' || steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor'}}
+      run: gh pr merge --auto --merge "$PR_URL"
+      env:
+        PR_URL: ${{github.event.pull_request.html_url}}
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+    - name: Approve Patch and Minor Updates
+      if: ${{steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch' || steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor'}}
+      run: gh pr review $PR_URL --approve -b "Approving this pull request because it includes a patch or minor update that aligns with our established best practices and policies."
+      env:
+        PR_URL: ${{github.event.pull_request.html_url}}
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+    - name: Handle Major Updates
+      if: ${{steps.dependabot-metadata.outputs.update-type == 'version-update:semver-major'}}
+      run: |
+        if [ ${{steps.dependabot-metadata.outputs.dependency-type}} == 'direct:development' ]
+        then
+          gh pr review $PR_URL --approve -b "Approving this pull request because it includes a major update of a development dependency that aligns with our established best practices and policies."
+        else
+          gh pr comment $PR_URL --body "Not approving this PR because it includes a major update of a production dependency that does not align with our established best practices and policies. This requires manual QA and review."
+          gh pr edit $PR_URL --add-label "requires-manual-qa"
+        fi
+      env:
+        PR_URL: ${{github.event.pull_request.html_url}}
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
