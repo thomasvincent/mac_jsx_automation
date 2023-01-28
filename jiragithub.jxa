@@ -1,0 +1,29 @@
+// Import the 'http' module to make API calls
+var http = Application('http');
+
+// Set the base URL for the JIRA API
+var jira_base_url = "https://jira.example.com/rest/api/2/";
+
+// Set the base URL for the GitHub API
+var github_base_url = "https://api.github.com/";
+
+// Make an API call to JIRA to retrieve a list of tickets
+var jira_response = http.get({
+    url: jira_base_url + "search",
+    parameters: {
+        jql: "project = MyProject AND status = Open",
+        fields: "summary, status"
+    }
+});
+
+// Make an API call to GitHub to retrieve a list of pull requests
+var github_response = http.get({
+    url: github_base_url + "repos/myusername/myrepo/pulls",
+    parameters: {
+        state: "open"
+    }
+});
+
+// Parse the response from JIRA and GitHub
+var jira_data = JSON.parse(jira_response.responseText);
+var github_data = JSON.parse(github_response.responseText);
