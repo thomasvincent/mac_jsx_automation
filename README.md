@@ -1,41 +1,69 @@
-# Jira and GitHub Integration Tool using JavaScript for Automation (JXA) on Mac OS X
 
-This script uses JavaScript for Automation (JXA) to retrieve information from Jira and GitHub APIs and display the results in a format suitable for integration into a larger project or dashboard. The script can be run on Mac OS X using the osascript command.
+# JIRA and GitHub Integration Script
+
+This script allows you to retrieve JIRA tickets and GitHub pull requests using API tokens stored in the macOS Keychain. It provides various features to enhance the user experience and integrate with the macOS ecosystem.
+
+## Features
+
+- Retrieves JIRA tickets and GitHub pull requests using API tokens securely stored in the Keychain.
+- Opens JIRA tickets and GitHub pull requests in the default web browser for quick access.
+- Saves the retrieved data as a formatted JSON file and opens it in TextEdit for further analysis.
+- Displays notifications using the Notification Center for successful data retrieval or errors.
+- Indexes the output file with Spotlight for easy searching and accessibility.
+- Provides functions to manage API tokens in the Keychain securely.
+- Includes error handling and logging for Keychain-related operations.
 
 ## Prerequisites
 
-- A Mac running OS X
-- An active Jira account and API access
-- An active GitHub account and API access
-- Basic knowledge of JavaScript
+Before running the script, ensure that you have the following:
 
-## Installation
+- macOS operating system.
+- JIRA and GitHub API tokens saved in the macOS Keychain with the appropriate service names.
+- Required permissions to access the Keychain and perform system-level operations.
 
-1. Clone or download this repository to your local machine.
-2. Install the required dependencies using `npm install`.
+## Getting Started
+
+1. Clone or download the script file to your local machine.
+
+2. Open the script file in a text editor and customize the following constants according to your setup:
+   - `JIRA_BASE_URL`: The base URL of your JIRA instance.
+   - `GITHUB_BASE_URL`: The base URL of the GitHub API.
+   - `JIRA_TOKEN_KEYCHAIN_ITEM`: The service name under which your JIRA API token is stored in the Keychain.
+   - `GITHUB_TOKEN_KEYCHAIN_ITEM`: The service name under which your GitHub API token is stored in the Keychain.
+   - `OUTPUT_FILE_PATH`: The desired file path where the retrieved data will be saved.
+
+3. Replace `"myusername"` and `"myrepo"` in the `getGithubPullRequests` function with your actual GitHub username and repository name.
+
+4. Save the script file with a `.js` extension, for example, `JIRAGitHubIntegration.js`.
 
 ## Usage
 
-1. Open `test_jiragithub.jxa` in a code editor of your choice.
-2. Replace the `jira_base_url` and `github_base_url` variables with the base URLs for your Jira and GitHub accounts, respectively.
-3. Replace the `jql` and `state` parameters with the desired search parameters for Jira and GitHub, respectively.
-4. Save the changes to `test_jiragithub.jxa`.
-5. Open Terminal on your Mac and navigate to the directory where you saved the repository.
-6. Run the script using the following command: `osascript test_jiragithub.jxa`
-7. The script will retrieve information from the Jira and GitHub APIs and display the results in the Terminal.
+To run the script, open the Terminal and navigate to the directory where the script file is located. Then, execute the following command:
 
-## GitHub Action
+## osascript -l JavaScript JIRAGitHubIntegration.js
 
-You can also test the script using a GitHub action. The `test.yml` file in this repository can be used to run the script on a Mac OS X machine using GitHub Actions.
 
-To use the action, follow these steps:
+The script will retrieve the JIRA tickets and GitHub pull requests, open them in the default web browser, save the data to a file, display notifications, and index the file with Spotlight.
 
-1. Fork this repository to your own GitHub account.
-2. Edit `test_jiragithub.jxa` as described in the Usage section.
-3. Push your changes to the main branch of your forked repository.
-4. Navigate to the Actions tab in your forked repository.
-5. Select "Test JXA script" from the list of available workflows.
-6. Click the "Run workflow" button to run the workflow.
-7. The script will run on a Mac OS X machine and the results will be displayed in the action logs.
+## Customization
 
-MAC OS X JXA Automations
+Feel free to customize and enhance the script based on your specific requirements. You can modify the JIRA query, add additional features, or integrate with other macOS APIs to extend the functionality.
+
+## Troubleshooting
+
+- If you encounter any issues related to Keychain access or permissions, ensure that you have the necessary permissions and that the API tokens are stored correctly in the Keychain.
+- If the script fails to retrieve data from JIRA or GitHub, double-check your API tokens and the respective base URLs.
+
+## License
+
+This script is licensed under the [MIT License](LICENSE). Feel free to modify and distribute it according to the terms of the license.
+
+## Acknowledgements
+
+This script was developed using JavaScript for Automation (JXA) and utilizes various macOS APIs and system commands. Special thanks to the developers and contributors of the JXA community for their valuable resources and examples.
+
+## Author
+
+Thomas Vincent
+
+For any questions or suggestions, please feel free to reach out to me.
