@@ -9,6 +9,6 @@ jobs:
     runs-on: macos-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Test JXA script
       run: osascript test_jiragithub.jxa
