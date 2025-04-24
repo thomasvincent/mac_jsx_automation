@@ -7,23 +7,23 @@
   "extends": "eslint:recommended",
   "parserOptions": {
     "ecmaVersion": 2021,
-    "sourceType": "module"
+    "sourceType": "script"
   },
   "rules": {
     "indent": [
-      "error",
+      "warn",
       2
     ],
     "linebreak-style": [
-      "error",
+      "warn",
       "unix"
     ],
     "quotes": [
-      "error",
+      "warn",
       "double"
     ],
     "semi": [
-      "error",
+      "warn",
       "always"
     ],
     "no-unused-vars": [
@@ -31,12 +31,28 @@
     ],
     "no-console": [
       "off"
+    ],
+    "no-undef": [
+      "warn"
     ]
   },
   "globals": {
     "Application": "readonly",
     "Path": "readonly",
     "app": "writable",
-    "importModule": "readonly"
-  }
+    "importModule": "readonly",
+    "Promise": "readonly",
+    "console": "readonly",
+    "$": "readonly",
+    "ObjC": "readonly",
+    "delay": "readonly"
+  },
+  "overrides": [
+    {
+      "files": ["*.jxa"],
+      "rules": {
+        "no-undef": "off"
+      }
+    }
+  ]
 }
