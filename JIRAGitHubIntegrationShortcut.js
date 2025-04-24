@@ -52,26 +52,20 @@ function saveTokenToKeychain(serviceName, token) {
 
 /**
  * Retrieves a list of JIRA tickets using the API token from the Keychain.
- * @returns {Promise<Array>} A promise that resolves to an array of JIRA tickets.
+ * @returns {Promise<Object>} A promise that resolves to an object containing JIRA tickets.
  */
 function getJiraTickets() {
     const url = JIRA_BASE_URL + "search";
-    const parameters = {
-        jql: "project = MyProject AND status = Open",
-        fields: "summary, status"
-    };
-    const headers = {
-        Authorization: `Bearer ${getPasswordFromKeychain(JIRA_TOKEN_KEYCHAIN_ITEM)}`
-    };
-
+    const jql = encodeURIComponent("project = MyProject AND status = Open");
+    const fields = encodeURIComponent("summary,status");
+    
+    const curlCommand = `curl -s -X GET "${url}?jql=${jql}&fields=${fields}" -H "Authorization: Bearer ${getPasswordFromKeychain(JIRA_TOKEN_KEYCHAIN_ITEM)}" -H "Content-Type: application/json"`;
+    
     return new Promise((resolve, reject) => {
         try {
-            const response = app.doJSONRequest(url, {
-                httpMethod: "GET",
-                queryParameters: parameters,
-                httpHeaders: headers
-            });
-            resolve(response);
+            const response = app.doShellScript(curlCommand);
+            const jsonResponse = JSON.parse(response);
+            resolve(jsonResponse);
         } catch (error) {
             reject(new Error(`Error fetching JIRA tickets: ${error.message}`));
         }
@@ -80,25 +74,26 @@ function getJiraTickets() {
 
 /**
  * Retrieves a list of GitHub pull requests using the API token from the Keychain.
+ * @param {string} username - The GitHub username.
+ * @param {string} repo - The GitHub repository name.
  * @returns {Promise<Array>} A promise that resolves to an array of GitHub pull requests.
  */
-function getGithubPullRequests() {
-    const url = GITHUB_BASE_URL + "repos/myusername/myrepo/pulls";
-    const parameters = {
-        state: "open"
-    };
-    const headers = {
-        Authorization: `Bearer ${getPasswordFromKeychain(GITHUB_TOKEN_KEYCHAIN_ITEM)}`
-    };
-
+function getGithubPullRequests(username, repo) {
+    if (!username || !repo) {
+        username = "myusername"; // Default username
+        repo = "myrepo"; // Default repository
+        console.log(`Using default GitHub repository: ${username}/${repo}`);
+    }
+    
+    const url = `${GITHUB_BASE_URL}repos/${username}/${repo}/pulls?state=open`;
+    
+    const curlCommand = `curl -s -X GET "${url}" -H "Authorization: Bearer ${getPasswordFromKeychain(GITHUB_TOKEN_KEYCHAIN_ITEM)}" -H "Accept: application/vnd.github.v3+json"`;
+    
     return new Promise((resolve, reject) => {
         try {
-            const response = app.doJSONRequest(url, {
-                httpMethod: "GET",
-                queryParameters: parameters,
-                httpHeaders: headers
-            });
-            resolve(response);
+            const response = app.doShellScript(curlCommand);
+            const jsonResponse = JSON.parse(response);
+            resolve(jsonResponse);
         } catch (error) {
             reject(new Error(`Error fetching GitHub pull requests: ${error.message}`));
         }
@@ -120,9 +115,14 @@ function openUrlInBrowser(url) {
  * @param {string} appName - The name of the application to open the file with.
  */
 function saveDataToFile(data, filePath, appName) {
-    const file = Path(filePath);
-    file.writeText(data);
-    app.doShellScript(`open -a "${appName}" "${filePath}"`);
+    // Expand the tilde in the file path if it exists
+    const expandedPath = filePath.replace(/^~/, app.pathTo("home folder"));
+    
+    // Write the data to the file
+    app.doShellScript(`echo '${data.replace(/'/g, "'\\''")}' > "${expandedPath}"`);
+    
+    // Open the file with the specified application
+    app.doShellScript(`open -a "${appName}" "${expandedPath}"`);
 }
 
 /**
@@ -143,33 +143,53 @@ function indexFileWithSpotlight(filePath) {
 }
 
 /**
- * Main function to retrieve JIRA tickets and GitHub pull requests.
+ * Extracts the JIRA instance URL from the API base URL.
+ * @returns {string} The JIRA instance URL.
  */
-async function main() {
+function getJiraInstanceUrl() {
+    // Extract the base URL without the API path
+    const match = JIRA_BASE_URL.match(/^(https?:\/\/[^\/]+)/);
+    return match ? match[1] : JIRA_BASE_URL;
+}
+
+/**
+ * Main function to retrieve JIRA tickets and GitHub pull requests.
+ * @param {string} githubUsername - Optional GitHub username.
+ * @param {string} githubRepo - Optional GitHub repository name.
+ */
+async function main(githubUsername, githubRepo) {
     try {
         // Retrieve JIRA tickets
         const jiraData = await getJiraTickets();
-        console.log("JIRA tickets:", jiraData);
+        console.log("JIRA tickets retrieved:", jiraData.issues ? jiraData.issues.length : 0);
+
+        // Get the JIRA instance URL for browsing tickets
+        const jiraInstanceUrl = getJiraInstanceUrl();
 
         // Open JIRA tickets in the browser
-        jiraData.forEach(ticket => {
-            const ticketUrl = `${JIRA_BASE_URL}browse/${ticket.key}`;
-            openUrlInBrowser(ticketUrl);
-        });
+        if (jiraData.issues && jiraData.issues.length > 0) {
+            jiraData.issues.forEach(ticket => {
+                const ticketUrl = `${jiraInstanceUrl}/browse/${ticket.key}`;
+                openUrlInBrowser(ticketUrl);
+            });
+        }
 
         // Retrieve GitHub pull requests
-        const githubData = await getGithubPullRequests();
-        console.log("GitHub pull requests:", githubData);
+        const githubData = await getGithubPullRequests(githubUsername, githubRepo);
+        console.log("GitHub pull requests retrieved:", githubData.length);
 
         // Open GitHub pull requests in the browser
-        githubData.forEach(pr => {
-            const prUrl = pr.html_url;
-            openUrlInBrowser(prUrl);
-        });
+        if (githubData.length > 0) {
+            githubData.forEach(pr => {
+                if (pr.html_url) {
+                    openUrlInBrowser(pr.html_url);
+                }
+            });
+        }
 
         // Save data to a file and open it in TextEdit
         const combinedData = {
-            jiraTickets: jiraData,
+            jiraTickets: jiraData.issues || [],
             githubPullRequests: githubData
         };
         const dataString = JSON.stringify(combinedData, null, 2);
@@ -181,12 +201,11 @@ async function main() {
         // Index the output file with Spotlight
         indexFileWithSpotlight(OUTPUT_FILE_PATH);
 
-        // Process and use the retrieved data
-        // ...
-
+        return combinedData;
     } catch (error) {
         console.error("Error:", error.message);
         displayNotification("Error", error.message);
+        throw error;
     }
 }
 
