@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    runs-on: macos-latest
+    runs-on: macos-13
     
     steps:
     - uses: actions/checkout@v3
@@ -63,3 +63,20 @@ jobs:
     - name: Run mock tests
       run: |
         node mock_test.js
+        
+    - name: Verify macOS compatibility
+      run: |
+        # Check if required macOS commands are available
+        echo "Checking for required macOS commands..."
+        which security && echo "✓ security command available"
+        which osascript && echo "✓ osascript command available"
+        which mdimport && echo "✓ mdimport command available"
+        
+        # Check if script has proper permissions
+        echo "Checking script permissions..."
+        chmod +x JIRAGitHubIntegrationShortcut.js
+        ls -la JIRAGitHubIntegrationShortcut.js
+        
+        # Verify macOS version
+        echo "macOS Version:"
+        sw_vers
