@@ -5,18 +5,29 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+
+# Explicitly define permissions
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
 
 jobs:
   test:
-    runs-on: macos-13
+    runs-on: macos-latest
     
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '18'
+        registry-url: 'https://npm.pkg.github.com'
+        scope: '@thomasvincent'
     
     - name: Install dependencies
       run: |
@@ -42,27 +53,111 @@ jobs:
             console.log("Notification displayed");
             return true;
           }
+          
+          doShellScript() {
+            console.log("Shell script executed");
+            return "{}";
+          }
+          
+          openLocation() {
+            console.log("URL opened");
+            return true;
+          }
         };
         
         // Import the main script functions
         const fs = require('fs');
-        const mainScript = fs.readFileSync('./JIRAGitHubIntegrationShortcut.js', 'utf8');
+        const mainScriptPath = './src/js/JIRAGitHubIntegration.js';
         
-        // Extract function names for testing
-        const functionMatches = mainScript.match(/function\s+([a-zA-Z0-9_]+)\s*\(/g) || [];
-        const functionNames = functionMatches.map(match => match.replace(/function\s+/, '').replace(/\s*\($/, ''));
+        if (fs.existsSync(mainScriptPath)) {
+          const mainScript = fs.readFileSync(mainScriptPath, 'utf8');
+          
+          // Extract modules for testing
+          const moduleMatches = mainScript.match(/const\s+([A-Z][a-zA-Z0-9_]*)\s*=\s*{/g) || [];
+          const moduleNames = moduleMatches.map(match => match.replace(/const\s+/, '').replace(/\s*=\s*{$/, ''));
+          
+          console.log("Found modules to test:", moduleNames.join(", "));
+          
+          // Verify test files exist
+          const testFile = './tests/test-integration.js';
+          if (fs.existsSync(testFile)) {
+            console.log("✓ Test file exists");
+          } else {
+            console.error("❌ Test file missing");
+            process.exit(1);
+          }
+        } else {
+          console.log("Using legacy script...");
+          const legacyScriptPath = './JIRAGitHubIntegrationShortcut.js';
+          if (fs.existsSync(legacyScriptPath)) {
+            const legacyScript = fs.readFileSync(legacyScriptPath, 'utf8');
+            
+            // Extract function names for testing
+            const functionMatches = legacyScript.match(/function\s+([a-zA-Z0-9_]+)\s*\(/g) || [];
+            const functionNames = functionMatches.map(match => match.replace(/function\s+/, '').replace(/\s*\($/, ''));
+            
+            console.log("Found functions to test:", functionNames.join(", "));
+          }
+        }
         
-        console.log("Found functions to test:", functionNames.join(", "));
         console.log("All mock tests passed!");
         EOL
         
-    - name: Lint JavaScript (main script only)
+    - name: Lint JavaScript files
       run: |
-        eslint --no-eslintrc --config .eslintrc.json JIRAGitHubIntegrationShortcut.js || true
+        echo "Linting main script..."
+        if [ -f src/js/JIRAGitHubIntegration.js ]; then
+          eslint --no-eslintrc --config .eslintrc.json src/js/JIRAGitHubIntegration.js || true
+        else
+          eslint --no-eslintrc --config .eslintrc.json JIRAGitHubIntegrationShortcut.js || true
+        fi
+        
+        echo "Linting test script..."
+        if [ -f tests/test-integration.js ]; then
+          eslint --no-eslintrc --config .eslintrc.json tests/test-integration.js || true
+        fi
+        
+    - name: Validate bash script syntax
+      run: |
+        if [ -f jira-github-integration.sh ]; then
+          echo "Checking jira-github-integration.sh..."
+          bash -n jira-github-integration.sh
+        fi
         
     - name: Run mock tests
       run: |
         node mock_test.js
+        
+    - name: Verify Automator workflow
+      run: |
+        if [ -d dist/JIRAGitHubIntegration.workflow ]; then
+          echo "Workflow exists and is a directory ✓"
+          if [ -f dist/JIRAGitHubIntegration.workflow/Contents/document.wflow ]; then
+            echo "Workflow document exists ✓"
+            plutil -lint dist/JIRAGitHubIntegration.workflow/Contents/document.wflow
+          else
+            echo "Error: Workflow document missing"
+            exit 1
+          fi
+        else
+          echo "Error: Workflow missing or not a directory"
+          exit 1
+        fi
+        
+    - name: Verify API usage
+      run: |
+        echo "Checking API usage..."
+        if grep -q "application/vnd.github.v3+json" src/js/JIRAGitHubIntegration.js; then
+          echo "✓ GitHub API version header found"
+        else
+          echo "⚠️ GitHub API header may need updating"
+        fi
+        
+        if grep -q "Bearer" src/js/JIRAGitHubIntegration.js; then
+          echo "✓ API token authorization method found"
+        else
+          echo "⚠️ API authorization method may need updating"
+        fi
         
     - name: Verify macOS compatibility
       run: |
@@ -72,10 +167,15 @@ jobs:
         which osascript && echo "✓ osascript command available"
         which mdimport && echo "✓ mdimport command available"
         
-        # Check if script has proper permissions
+        # Verify script permissions
         echo "Checking script permissions..."
-        chmod +x JIRAGitHubIntegrationShortcut.js
-        ls -la JIRAGitHubIntegrationShortcut.js
+        if [ -f src/js/JIRAGitHubIntegration.js ]; then
+          chmod +x src/js/JIRAGitHubIntegration.js
+          ls -la src/js/JIRAGitHubIntegration.js
+        else
+          chmod +x JIRAGitHubIntegrationShortcut.js
+          ls -la JIRAGitHubIntegrationShortcut.js
+        fi
         
         # Verify macOS version
         echo "macOS Version:"

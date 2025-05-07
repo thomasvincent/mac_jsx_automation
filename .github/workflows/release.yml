@@ -1,0 +1,104 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  packages: write
+  issues: write
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@thomasvincent'
+
+      - name: Set release version
+        id: get_version
+        run: |
+          # Strip the 'v' prefix from the tag
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+          # Update version in package.json
+          sed -i '' "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" package.json
+          
+          # Update version in main script
+          sed -i '' "s/\* @version .*\$/\* @version $VERSION/" src/js/JIRAGitHubIntegration.js
+          
+          # Update version in bash script
+          sed -i '' "s/# Version: .*\$/# Version: $VERSION/" jira-github-integration.sh
+          
+          # Update version in test script
+          sed -i '' "s/\* @version .*\$/\* @version $VERSION/" tests/test-integration.js
+
+      - name: Create ZIP distribution
+        run: |
+          mkdir -p dist/macos-jira-github-integration-${{ env.VERSION }}
+          cp -R src dist/macos-jira-github-integration-${{ env.VERSION }}/
+          cp -R tests dist/macos-jira-github-integration-${{ env.VERSION }}/
+          cp -R dist/JIRAGitHubIntegration.workflow dist/macos-jira-github-integration-${{ env.VERSION }}/dist/
+          cp jira-github-integration.sh dist/macos-jira-github-integration-${{ env.VERSION }}/
+          cp package.json README.md LICENSE dist/macos-jira-github-integration-${{ env.VERSION }}/
+          cd dist && zip -r macos-jira-github-integration-${{ env.VERSION }}.zip macos-jira-github-integration-${{ env.VERSION }}
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/macos-jira-github-integration-${{ env.VERSION }}.zip
+          name: Release ${{ env.VERSION }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          body: |
+            ## Release v${{ env.VERSION }}
+            
+            ### What's Changed
+            
+            Changes in this release:
+            - Check the auto-generated release notes below for full commit history
+            
+            ### Installation
+            
+            ```bash
+            # Clone the repository
+            git clone https://github.com/thomasvincent/macos-jira-github-integration-shortcut.git
+            cd macos-jira-github-integration-shortcut
+            
+            # Make scripts executable
+            chmod +x src/js/JIRAGitHubIntegration.js
+            chmod +x jira-github-integration.sh
+            ```
+            
+            Alternatively, download and extract the ZIP file.
+
+      - name: Publish to GitHub Packages
+        run: |
+          # Create a minimal distribution package
+          mkdir -p npm-package
+          cp -R src npm-package/
+          cp -R dist/JIRAGitHubIntegration.workflow npm-package/dist/
+          cp jira-github-integration.sh npm-package/
+          cp package.json README.md LICENSE npm-package/
+          
+          # Publish to GitHub Packages
+          cd npm-package
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > .npmrc
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
