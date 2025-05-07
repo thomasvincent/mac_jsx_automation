@@ -287,6 +287,8 @@ const System = {
  * @param {boolean} options.openInBrowser - Whether to open items in browser
  * @param {string} options.outputFilePath - Output file path
  * @param {string} options.outputApp - App to open the output file
+ * @param {boolean} options.summaryOnly - Only generate summary, don't open files
+ * @param {boolean} options.richNotifications - Use rich notifications with clickable buttons
  * @returns {Promise<Object>} The combined data
  */
 async function main(options = {}) {
@@ -296,7 +298,9 @@ async function main(options = {}) {
     githubRepo: options.githubRepo || CONFIG.github.defaultRepo,
     openInBrowser: options.openInBrowser !== undefined ? options.openInBrowser : CONFIG.output.openInBrowser,
     outputFilePath: options.outputFilePath || CONFIG.output.filePath,
-    outputApp: options.outputApp || CONFIG.output.appName
+    outputApp: options.outputApp || CONFIG.output.appName,
+    summaryOnly: options.summaryOnly || false,
+    richNotifications: options.richNotifications !== undefined ? options.richNotifications : true
   };
   
   try {
@@ -346,6 +350,19 @@ async function main(options = {}) {
     // Convert to formatted JSON string
     const dataString = JSON.stringify(combinedData, null, 2);
     
+    // Create rich notification with summary if enabled
+    if (config.richNotifications && !config.summaryOnly) {
+      showRichSummaryNotification(combinedData);
+    }
+    
+    // If we're only generating summary, just save the data and return
+    if (config.summaryOnly) {
+      if (config.outputFilePath) {
+        System.saveDataToFile(dataString, config.outputFilePath);
+      }
+      return combinedData;
+    }
+    
     // Save data to a file and open it
     const savedFilePath = System.saveDataToFile(dataString, config.outputFilePath, config.outputApp);
     
@@ -374,6 +391,54 @@ async function main(options = {}) {
     
     throw error;
   }
+}
+
+/**
+ * Shows a rich notification with summary data and interactive buttons
+ * 
+ * @param {Object} data - The combined data from JIRA and GitHub
+ */
+function showRichSummaryNotification(data) {
+  const jiraCount = data.jiraTickets.length;
+  const prCount = data.githubPullRequests.length;
+  
+  let summaryText = "";
+  
+  // Add JIRA ticket summary
+  if (jiraCount > 0) {
+    summaryText += `JIRA Tickets (${jiraCount}):\n`;
+    data.jiraTickets.slice(0, 3).forEach(ticket => {
+      summaryText += `• ${ticket.key}: ${ticket.fields.summary}\n`;
+    });
+    if (jiraCount > 3) {
+      summaryText += `• ...and ${jiraCount - 3} more\n`;
+    }
+  } else {
+    summaryText += "No JIRA tickets found.\n";
+  }
+  
+  // Add GitHub PR summary
+  if (prCount > 0) {
+    summaryText += `\nGitHub PRs (${prCount}):\n`;
+    data.githubPullRequests.slice(0, 3).forEach(pr => {
+      summaryText += `• #${pr.number}: ${pr.title}\n`;
+    });
+    if (prCount > 3) {
+      summaryText += `• ...and ${prCount - 3} more\n`;
+    }
+  } else {
+    summaryText += "\nNo GitHub pull requests found.";
+  }
+  
+  // Show the summary notification
+  System.displayNotification(
+    "Summary", 
+    summaryText,
+    "Glass"
+  );
+  
+  // Note: macOS doesn't support buttons in notifications via JXA,
+  // but if we could, we would add buttons to open all tickets/PRs or view the detailed JSON
 }
 
 // Run the main function when executed directly

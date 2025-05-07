@@ -82,6 +82,43 @@ This project provides an integration between JIRA and GitHub for macOS, allowing
 
 ## Usage
 
+### Interactive Menu
+
+The easiest way to use the integration is through the interactive menu:
+
+```bash
+./jira-github-integration.sh --menu
+# or
+npm run menu
+```
+
+This provides a user-friendly interface with the following options:
+1. Fetch JIRA tickets and GitHub PRs
+2. Show summary (no browser)
+3. Run with custom GitHub repository
+4. Custom output location
+5. Run configuration wizard
+6. Run tests
+7. Check stored API tokens
+8. Help
+9. Exit
+
+### Configuration Wizard
+
+For first-time setup, run the configuration wizard:
+
+```bash
+./jira-github-integration.sh --configure
+# or
+npm run configure
+```
+
+This will guide you through:
+- Setting up JIRA connection details
+- Configuring GitHub repository information
+- Setting output preferences
+- Storing API tokens securely in the macOS Keychain
+
 ### Command Line Interface
 
 Use the bash wrapper script with various options:
@@ -98,6 +135,9 @@ Available options:
 - `-a, --app APP`: Specify application to open output file
 - `-n, --no-browser`: Don't open tickets/PRs in browser
 - `-t, --test`: Run tests instead of the main script
+- `-c, --configure`: Run interactive configuration wizard
+- `-s, --summary`: Show summary of tickets and PRs without opening browser
+- `-m, --menu`: Show interactive menu with common operations
 
 Examples:
 ```bash
@@ -105,6 +145,32 @@ Examples:
 ./jira-github-integration.sh --output-file ~/Desktop/tickets.json --app "Visual Studio Code"
 ./jira-github-integration.sh --no-browser
 ./jira-github-integration.sh --test
+./jira-github-integration.sh --summary
+```
+
+### Quick Summary View
+
+To see a quick summary of your JIRA tickets and GitHub pull requests without opening a browser:
+
+```bash
+./jira-github-integration.sh --summary
+# or
+npm run summary
+```
+
+This will display a formatted list of your tickets and PRs in the terminal.
+
+### Through npm
+
+If you've installed the package via npm, you can use the provided scripts:
+
+```bash
+npm run start       # Run the integration with default settings
+npm run cli         # Run the CLI
+npm run menu        # Show the interactive menu
+npm run summary     # Show the quick summary
+npm run configure   # Run the configuration wizard
+npm run test        # Run the test suite
 ```
 
 ### Direct Execution
