@@ -55,40 +55,40 @@ jobs:
           if [ ! -f dist/JIRAGitHubIntegration.workflow/Contents/document.wflow ]; then
             echo "Creating minimal workflow document for distribution..."
             cat > dist/JIRAGitHubIntegration.workflow/Contents/document.wflow << 'EOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>AMApplicationBuild</key>
-  <string>512</string>
-  <key>AMApplicationVersion</key>
-  <string>2.10</string>
-  <key>AMDocumentVersion</key>
-  <string>2</string>
-  <key>actions</key>
-  <array>
-    <dict>
-      <key>action</key>
-      <dict>
-        <key>AMActionVersion</key>
-        <string>1.0.2</string>
-        <key>AMApplication</key>
-        <array>
-          <string>Automator</string>
-        </array>
-        <key>AMParameterProperties</key>
-        <dict>
-          <key>source</key>
-          <dict/>
-        </dict>
-        <key>ActionBundlePath</key>
-        <string>/System/Library/Automator/Run JavaScript.action</string>
-        <key>ActionName</key>
-        <string>Run JavaScript</string>
-        <key>ActionParameters</key>
-        <dict>
-          <key>source</key>
-          <string>function run(input, parameters) {
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+            <plist version="1.0">
+            <dict>
+              <key>AMApplicationBuild</key>
+              <string>512</string>
+              <key>AMApplicationVersion</key>
+              <string>2.10</string>
+              <key>AMDocumentVersion</key>
+              <string>2</string>
+              <key>actions</key>
+              <array>
+                <dict>
+                  <key>action</key>
+                  <dict>
+                    <key>AMActionVersion</key>
+                    <string>1.0.2</string>
+                    <key>AMApplication</key>
+                    <array>
+                      <string>Automator</string>
+                    </array>
+                    <key>AMParameterProperties</key>
+                    <dict>
+                      <key>source</key>
+                      <dict/>
+                    </dict>
+                    <key>ActionBundlePath</key>
+                    <string>/System/Library/Automator/Run JavaScript.action</string>
+                    <key>ActionName</key>
+                    <string>Run JavaScript</string>
+                    <key>ActionParameters</key>
+                    <dict>
+                      <key>source</key>
+                      <string>function run(input, parameters) {
     var app = Application.currentApplication();
     app.includeStandardAdditions = true;
     
@@ -108,41 +108,41 @@ jobs:
         return error.message;
     }
 }</string>
-        </dict>
-        <key>BundleIdentifier</key>
-        <string>com.apple.Automator.RunJavaScript</string>
-      </dict>
-    </dict>
-  </array>
-</dict>
-</plist>
-EOF
+                    </dict>
+                    <key>BundleIdentifier</key>
+                    <string>com.apple.Automator.RunJavaScript</string>
+                  </dict>
+                </dict>
+              </array>
+            </dict>
+            </plist>
+            EOF
           fi
           
           if [ ! -f dist/JIRAGitHubIntegration.workflow/Contents/Info.plist ]; then
             echo "Creating minimal Info.plist for distribution..."
             cat > dist/JIRAGitHubIntegration.workflow/Contents/Info.plist << 'EOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>CFBundleName</key>
-  <string>JIRA GitHub Integration</string>
-  <key>NSServices</key>
-  <array>
-    <dict>
-      <key>NSMenuItem</key>
-      <dict>
-        <key>default</key>
-        <string>JIRA GitHub Integration</string>
-      </dict>
-      <key>NSMessage</key>
-      <string>runWorkflowAsService</string>
-    </dict>
-  </array>
-</dict>
-</plist>
-EOF
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+            <plist version="1.0">
+            <dict>
+              <key>CFBundleName</key>
+              <string>JIRA GitHub Integration</string>
+              <key>NSServices</key>
+              <array>
+                <dict>
+                  <key>NSMenuItem</key>
+                  <dict>
+                    <key>default</key>
+                    <string>JIRA GitHub Integration</string>
+                  </dict>
+                  <key>NSMessage</key>
+                  <string>runWorkflowAsService</string>
+                </dict>
+              </array>
+            </dict>
+            </plist>
+            EOF
           fi
           
           # Create distribution directory
