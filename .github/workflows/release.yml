@@ -51,99 +51,97 @@ jobs:
           # Ensure workflow directory exists
           mkdir -p dist/JIRAGitHubIntegration.workflow/Contents
           
-          # Create minimal workflow files if they don't exist
-          if [ ! -f dist/JIRAGitHubIntegration.workflow/Contents/document.wflow ]; then
-            echo "Creating minimal workflow document for distribution..."
-            cat > dist/JIRAGitHubIntegration.workflow/Contents/document.wflow << 'EOF'
-            <?xml version="1.0" encoding="UTF-8"?>
-            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-            <plist version="1.0">
-            <dict>
-              <key>AMApplicationBuild</key>
-              <string>512</string>
-              <key>AMApplicationVersion</key>
-              <string>2.10</string>
-              <key>AMDocumentVersion</key>
-              <string>2</string>
-              <key>actions</key>
-              <array>
+          # Create workflow files
+          # Create document.wflow
+          echo "Creating document.wflow file"
+          cat > dist/JIRAGitHubIntegration.workflow/Contents/document.wflow << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>AMApplicationBuild</key>
+            <string>512</string>
+            <key>AMApplicationVersion</key>
+            <string>2.10</string>
+            <key>AMDocumentVersion</key>
+            <string>2</string>
+            <key>actions</key>
+            <array>
+              <dict>
+                <key>action</key>
                 <dict>
-                  <key>action</key>
+                  <key>AMActionVersion</key>
+                  <string>1.0.2</string>
+                  <key>AMApplication</key>
+                  <array>
+                    <string>Automator</string>
+                  </array>
+                  <key>AMParameterProperties</key>
                   <dict>
-                    <key>AMActionVersion</key>
-                    <string>1.0.2</string>
-                    <key>AMApplication</key>
-                    <array>
-                      <string>Automator</string>
-                    </array>
-                    <key>AMParameterProperties</key>
-                    <dict>
-                      <key>source</key>
-                      <dict/>
-                    </dict>
-                    <key>ActionBundlePath</key>
-                    <string>/System/Library/Automator/Run JavaScript.action</string>
-                    <key>ActionName</key>
-                    <string>Run JavaScript</string>
-                    <key>ActionParameters</key>
-                    <dict>
-                      <key>source</key>
-                      <string>function run(input, parameters) {
-    var app = Application.currentApplication();
-    app.includeStandardAdditions = true;
-    
-    try {
-        var scriptPath = app.pathTo("home folder") + "/macos-jira-github-integration-shortcut/src/js/JIRAGitHubIntegration.js";
-        var result = app.doShellScript("osascript -l JavaScript '" + scriptPath + "'");
-        app.displayNotification("JIRA tickets and GitHub pull requests retrieved successfully.", {
-            withTitle: "Integration Complete",
-            soundName: "Glass"
-        });
-        return result;
-    } catch (error) {
-        app.displayNotification("Error: " + error.message, {
-            withTitle: "Integration Failed",
-            soundName: "Basso"
-        });
-        return error.message;
-    }
+                    <key>source</key>
+                    <dict/>
+                  </dict>
+                  <key>ActionBundlePath</key>
+                  <string>/System/Library/Automator/Run JavaScript.action</string>
+                  <key>ActionName</key>
+                  <string>Run JavaScript</string>
+                  <key>ActionParameters</key>
+                  <dict>
+                    <key>source</key>
+                    <string>function run(input, parameters) {
+  var app = Application.currentApplication();
+  app.includeStandardAdditions = true;
+  
+  try {
+    var scriptPath = app.pathTo("home folder") + "/macos-jira-github-integration-shortcut/src/js/JIRAGitHubIntegration.js";
+    var result = app.doShellScript("osascript -l JavaScript '" + scriptPath + "'");
+    app.displayNotification("JIRA tickets and GitHub pull requests retrieved successfully.", {
+      withTitle: "Integration Complete",
+      soundName: "Glass"
+    });
+    return result;
+  } catch (error) {
+    app.displayNotification("Error: " + error.message, {
+      withTitle: "Integration Failed",
+      soundName: "Basso"
+    });
+    return error.message;
+  }
 }</string>
-                    </dict>
-                    <key>BundleIdentifier</key>
-                    <string>com.apple.Automator.RunJavaScript</string>
                   </dict>
+                  <key>BundleIdentifier</key>
+                  <string>com.apple.Automator.RunJavaScript</string>
                 </dict>
-              </array>
-            </dict>
-            </plist>
-            EOF
-          fi
+              </dict>
+            </array>
+          </dict>
+          </plist>
+          EOF
           
-          if [ ! -f dist/JIRAGitHubIntegration.workflow/Contents/Info.plist ]; then
-            echo "Creating minimal Info.plist for distribution..."
-            cat > dist/JIRAGitHubIntegration.workflow/Contents/Info.plist << 'EOF'
-            <?xml version="1.0" encoding="UTF-8"?>
-            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-            <plist version="1.0">
-            <dict>
-              <key>CFBundleName</key>
-              <string>JIRA GitHub Integration</string>
-              <key>NSServices</key>
-              <array>
+          # Create Info.plist
+          echo "Creating Info.plist file"
+          cat > dist/JIRAGitHubIntegration.workflow/Contents/Info.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleName</key>
+            <string>JIRA GitHub Integration</string>
+            <key>NSServices</key>
+            <array>
+              <dict>
+                <key>NSMenuItem</key>
                 <dict>
-                  <key>NSMenuItem</key>
-                  <dict>
-                    <key>default</key>
-                    <string>JIRA GitHub Integration</string>
-                  </dict>
-                  <key>NSMessage</key>
-                  <string>runWorkflowAsService</string>
+                  <key>default</key>
+                  <string>JIRA GitHub Integration</string>
                 </dict>
-              </array>
-            </dict>
-            </plist>
-            EOF
-          fi
+                <key>NSMessage</key>
+                <string>runWorkflowAsService</string>
+              </dict>
+            </array>
+          </dict>
+          </plist>
+          EOF
           
           # Create distribution directory
           mkdir -p dist/macos-jira-github-integration-${{ env.VERSION }}
