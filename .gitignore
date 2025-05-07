@@ -46,9 +46,13 @@ coverage/
 .nyc_output/
 
 # Build output
-dist/
 build/
 out/
+
+# Keep dist folder for Automator workflow
+# but ignore other build artifacts
+dist/*
+!dist/JIRAGitHubIntegration.workflow/
 
 # Temporary files
 tmp/

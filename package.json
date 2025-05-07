@@ -1,0 +1,49 @@
+{
+  "name": "@thomasvincent/macos-jira-github-integration",
+  "version": "3.0.0",
+  "description": "Integration between JIRA and GitHub for macOS",
+  "author": "Thomas Vincent",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "start": "osascript -l JavaScript src/js/JIRAGitHubIntegration.js",
+    "test": "osascript -l JavaScript tests/test-integration.js",
+    "lint": "eslint src/js/*.js tests/*.js",
+    "cli": "./jira-github-integration.sh",
+    "version:patch": "npm version patch -m \"Release v%s\"",
+    "version:minor": "npm version minor -m \"Release v%s\"",
+    "version:major": "npm version major -m \"Release v%s\"",
+    "release": "git push && git push --tags"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thomasvincent/macos-jira-github-integration-shortcut"
+  },
+  "keywords": [
+    "jira",
+    "github",
+    "macos",
+    "integration",
+    "automation",
+    "jxa",
+    "javascript-for-automation",
+    "applescript"
+  ],
+  "devDependencies": {
+    "eslint": "^8.40.0"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "public"
+  },
+  "files": [
+    "src/",
+    "dist/JIRAGitHubIntegration.workflow/",
+    "jira-github-integration.sh",
+    "LICENSE",
+    "README.md"
+  ]
+}
